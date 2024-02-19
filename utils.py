@@ -1,77 +1,8 @@
-
-import os
-import re
-
 import numpy           as np
 import numpy.linalg    as npla
 import scipy.linalg    as spla
 import scipy.integrate as spi
 
-
-def num_lines(filename):
-    """ Counts the number of lines in a file """
-    with open(filename, "r") as fd:
-        count = 0
-        for i in fd: count += 1
-    return count
-
-def parse_command_line_args(cmd_args, args=[]):
-    """ Determines the files to process from the command line arguments """
-    files, args = [], check_args(cmd_args)
-    if( len(args) == 0 ):
-        files = os.listdir("./data/")
-    elif( len(args) > 1 ):
-        for i in range(0, len(args)):
-            files.append("H_STO-" + str(args[i]) + "G.dat")
-    elif( args[0] == 12 ):
-        files = ["./data/H_STO-12G.dat"]
-    elif( args[0] == 20 ):
-        files = ["./data/H_STO-20G.dat"]
-    elif( args[0] == 23 ):
-        files = ["./data/H_STO-23G.dat"]
-    elif( args[0] > 6 or args[0] <= 0 ):
-        print("Given value must be between 1 and 6 or it can be 20")
-    elif( args[0] <= 6 and args[0] > 0 ):
-        files = ["./data/H_STO-" + str(args[0]) + "G.dat"]
-    else:
-        files = ["./data/H_STO-6G.dat"]
-    if( len(files) > 1 ):
-        files = sort_files(files)
-    return files
-
-# Clearly there is a better way of doing this...
-def sort_files(files):
-    """ Ensures the files are in a certain order """
-    new_files = []
-    if( "H_STO-1G.dat" in files ):
-        new_files.append("H_STO-1G.dat")
-    if( "H_STO-2G.dat" in files ):
-        new_files.append("H_STO-2G.dat")
-    if( "H_STO-3G.dat" in files ):
-        new_files.append("H_STO-3G.dat")
-    if( "H_STO-4G.dat" in files ):
-        new_files.append("H_STO-4G.dat")
-    if( "H_STO-5G.dat" in files ):
-        new_files.append("H_STO-5G.dat")
-    if( "H_STO-6G.dat" in files ):
-        new_files.append("H_STO-6G.dat")
-    if( "H_STO-12G.dat" in files ):
-        new_files.append("H_STO-12G.dat")
-    if( "H_STO-20G.dat" in files ):
-        new_files.append("H_STO-20G.dat")
-    if( "H_STO-23G.dat" in files ):
-        new_files.append("H_STO-23G.dat")
-    return new_files
-
-def check_args(cmd_args, args=[]):
-    """ Checks to make sure the command line arguments are positive integers """
-    for i in cmd_args:
-        try:
-            i = abs(int(i))
-            args.append(i)
-        except ValueError:
-            pass
-    return args
 
 def get_alpha_coeff(filename):
     """ Reading in alpha coeff for gaussian functions """
@@ -134,11 +65,11 @@ def overlap(r, ai, aj):
     """ Integrable overlap function """
     return 4 * np.pi * (r**2) * ngf_prod(r, ai, aj)
 
-def calculate_s(func, ai, aj):
+def overlap_numerical(func, ai, aj):
     """ Calculate overlap integral """
     return spi.quad(func, 0, np.inf, args=(ai, aj), epsabs=1E-13, epsrel=1E-13, limit=200)[0]
 
-def calculate_s_alt(ai, aj):
+def overlap_analytical(ai, aj):
     """ Analytical evaluation of  the overlap matrix """
     temp_1 = 2 * np.sqrt(2) * ((ai*aj)**(3/4))
     temp_2 = (ai + aj)**(3/2)
@@ -148,11 +79,11 @@ def potential(r, ai, aj):
     """ Integrable potential function """
     return 4 * np.pi * (r**2) * (-ngf(r, ai) / r) * ngf(r, aj)
 
-def calculate_v(func, ai, aj):
+def potential_numerical(func, ai, aj):
     """ Calculate potential energy """
     return spi.quad(func, 0, np.inf, args=(ai, aj), epsabs=1E-10, epsrel=1E-10, limit=200)[0]
 
-def calculate_v_alt(ai, aj):
+def potential_analytical(ai, aj):
     """ Analytical evaluation of the PE matrix """
     temp_1 = 4 * np.power((2/np.pi), (1/2)) * (ai*aj)**(3/4)
     temp_2 = ai + aj
@@ -169,11 +100,11 @@ def kinetic(r, ai, aj):
     temp_2 = kinetic_proxy(r, aj)
     return 4 * np.pi * (r**2) * temp_1 * temp_2
 
-def calculate_t(func, ai, aj):
+def kinetic_numerical(func, ai, aj):
     """ Calculate kinetic energy """
     return spi.quad(func, 0, np.inf, args=(ai, aj), epsabs=1E-10, epsrel=1E-10, limit=200)[0]
 
-def calculate_t_alt(ai, aj):
+def kinetic_analytical(ai, aj):
     """ Analytical evaluation of the KE matrix """
     temp_1 = 6 * np.sqrt(2) * (ai*aj)**(7/4)
     temp_2 = (ai + aj)**(5/2)
